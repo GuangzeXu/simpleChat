@@ -4,7 +4,7 @@
 
 package client;
 
-import ocsf.client.*;
+import ocsf.src.ocsf.client.*;
 import common.*;
 import java.io.*;
 
