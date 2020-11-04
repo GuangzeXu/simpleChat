@@ -3,7 +3,8 @@
 // license found at www.lloseng.com 
 
 import java.io.*;
-import ocsf.server.*;
+import common.ChatIF;
+import ocsf.src.ocsf.server.*;
 
 /**
  * This class overrides some of the methods in the abstract 
@@ -18,6 +19,7 @@ import ocsf.server.*;
 public class EchoServer extends AbstractServer 
 {
   //Class variables *************************************************
+	ChatIF serverUI;
   
   /**
    * The default port to listen on.
@@ -35,6 +37,12 @@ public class EchoServer extends AbstractServer
   {
     super(port);
   }
+  
+  public EchoServer(int port, ChatIF serverUI) throws IOException{
+	  super(port);
+	  this.serverUI = serverUI;
+
+	  }
 
   
   //Instance methods ************************************************
@@ -48,9 +56,154 @@ public class EchoServer extends AbstractServer
   public void handleMessageFromClient
     (Object msg, ConnectionToClient client)
   {
+	  if (msg.toString().startsWith("#login "))
+
+	    {
+
+	      if (client.getInfo("loginID") != null){
+
+	        try{
+
+	          client.sendToClient("You are already logged in.");
+
+	        }
+
+	        catch (IOException e) {}
+
+	        return;
+
+	      }
+
+	      client.setInfo("loginID", msg.toString().substring(7));
+
+	    }
+
+	    else{
+
+	      if (client.getInfo("loginID") == null){
+
+	        try{
+
+	          client.sendToClient("You need to login before you can chat.");
+
+	          client.close();
+
+	        }
+
+	        catch (IOException e) {}
+
+	        return;
+
+	      }
     System.out.println("Message received: " + msg + " from " + client);
     this.sendToAllClients(msg);
   }
+}
+  public void  handleMessageFromServerUI(String message) {
+	  if(message.charAt(0) == '#') {
+		  runCommand(message);
+	  }
+	  else {
+		  serverUI.display(message);
+		  this.sendToAllClients(message);
+	  }
+	  
+  }
+  private void runCommand(String message){
+
+	    // run commands
+
+	    // a series of if statements
+
+
+
+	    if (message.equalsIgnoreCase("#quit"))
+
+	    	quit();
+
+	    else if (message.equalsIgnoreCase("#stop"))
+
+	      stopListening();
+
+	    else if (message.equalsIgnoreCase("#close"))
+
+	    {
+
+	      try{
+
+	        close();
+
+	      }
+
+	      catch(IOException e) {}
+
+	    }
+
+	    else if (message.toLowerCase().startsWith("#setport")){
+
+	      if (getNumberOfClients() == 0 && !isListening()){
+
+	        // If there are no connected clients and we are not 
+
+	        // listening for new ones, assume server closed.
+
+	        // A more exact way to determine this was not obvious and
+
+	        // time was limited.
+
+	        int newPort = Integer.parseInt(message.substring(9));
+
+	        setPort(newPort);
+
+	        //error checking should be added
+
+	        serverUI.display
+
+	          ("Server port changed to " + getPort());
+
+	      }
+
+	      else
+
+	      {
+
+	        serverUI.display("The server is not closed. Port cannot be changed.");
+
+	      }
+
+	    }
+
+	    else if (message.equalsIgnoreCase("#start")){
+
+	      if (!isListening()){
+
+	        try{
+
+	          listen();
+
+	        }
+
+	        catch(Exception ex){
+
+	          serverUI.display("Error - Could not listen for clients!");
+
+	        }
+
+	      }
+
+	      else
+
+	        serverUI.display("The server is already listening for clients.");
+
+	    }
+
+	    else if (message.equalsIgnoreCase("#getport"))
+
+	      serverUI.display("Currently port: " + Integer.toString(getPort()));
+
+	  }
+	  
+	  
     
   /**
    * This method overrides the one in the superclass.  Called
@@ -81,6 +234,27 @@ public class EchoServer extends AbstractServer
    * @param args[0] The port number to listen on.  Defaults to 5555 
    *          if no argument is entered.
    */
+  public void quit()
+
+  {
+
+    try
+
+    {
+
+      close();
+
+    }
+
+    catch(IOException e)
+
+    {
+
+    }
+
+    System.exit(0);
+
+  }
   public static void main(String[] args) 
   {
     int port = 0; //Port to listen on
