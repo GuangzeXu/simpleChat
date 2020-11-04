@@ -25,7 +25,8 @@ public class ChatClient extends AbstractClient
    * The interface type variable.  It allows the implementation of 
    * the display method in the client.
    */
-  ChatIF clientUI; 
+  ChatIF clientUI;
+  String loginID;
 
   
   //Constructors ****************************************************
@@ -44,6 +45,8 @@ public class ChatClient extends AbstractClient
     super(host, port); //Call the superclass constructor
     this.clientUI = clientUI;
     openConnection();
+    this.loginID = "admin";
+    sendToServer("admin login");
   }
 
   
